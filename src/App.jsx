@@ -9,6 +9,8 @@ const App = () => {
   const [savePasswordName, setSavePasswordName] = useState("");
   const [savePassword, setSavePassword] = useState("");
 
+  const [savedPasswords, setSavedPasswords] = useState([]);
+
   const passwordRef = useRef(null);
   const namePassRef = useRef(null);
 
@@ -39,9 +41,19 @@ const App = () => {
     setSavePassword(password);
   }, [password, setSavePassword]);
 
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
   useEffect(() => {
     passwordGenerator();
-  }, [length, includeNumbers, includeSymbols, passwordGenerator]);
+  }, [
+    length,
+    includeNumbers,
+    includeSymbols,
+    passwordGenerator,
+    savedPasswords,
+  ]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-black flex items-center justify-center px-4 text-white">
@@ -99,7 +111,10 @@ const App = () => {
 
           {/* Options */}
           <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center gap-3 bg-slate-800 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-700 transition border border-white/10">
+            <label
+              className="flex items-center gap-3 bg-slate-800 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-700 transition border border-white/10"
+              title="0123456789"
+            >
               <input
                 type="checkbox"
                 className="accent-emerald-400 scale-125"
@@ -109,7 +124,10 @@ const App = () => {
               <span className="text-sm">Numbers</span>
             </label>
 
-            <label className="flex items-center gap-3 bg-slate-800 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-700 transition border border-white/10">
+            <label
+              className="flex items-center gap-3 bg-slate-800 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-700 transition border border-white/10"
+              title="!@#$%^&*()_+"
+            >
               <input
                 type="checkbox"
                 className="accent-emerald-400 scale-125"
@@ -152,7 +170,23 @@ const App = () => {
               className="w-full rounded-xl bg-slate-800 px-4 py-3 outline-none border border-white/10 focus:border-emerald-400 transition"
             />
           </div>
-          <button className="w-full shrink-0 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold px-5 py-2 transition active:scale-95">
+          <button
+            className="w-full shrink-0 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold px-5 py-2 transition active:scale-95"
+            onClick={() => {
+              if (!savePasswordName || !savePassword) return;
+
+              setSavedPasswords((prev) => [
+                ...prev,
+                {
+                  id: Date.now(),
+                  name: savePasswordName,
+                  password: savePassword,
+                },
+              ]);
+              setSavePasswordName("");
+              setSavePassword("");
+            }}
+          >
             Save
           </button>
 
@@ -165,37 +199,46 @@ const App = () => {
 
             {/* List */}
             <ul className="w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 flex flex-col gap-y-3">
-              <li
-                className=" bg-slate-800/70 backdrop-blur border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between text-sm text-slate-200 transition hover:bg-slate-700/70"
-                title="Click on name or password to copy it"
-              >
-                {/* Left side: ID + Name */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-slate-400">#1</span>
-
-                  <span
-                    className="cursor-pointer font-medium text-white hover:text-emerald-400 transition"
-                    title="Click to copy name"
-                  >
-                    Name
-                  </span>
-                </div>
-
-                {/* Right side: Password */}
-                <span
-                  className="cursor-pointer font-mono tracking-wider text-slate-300 hover:text-emerald-400 transition"
-                  title="Click to copy password"
+              {savedPasswords.map((item, index) => (
+                <li
+                  key={item.id}
+                  className=" bg-slate-800/70 backdrop-blur border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between text-sm text-slate-200 transition hover:bg-slate-700/70"
+                  title="Click on name or password to copy it"
                 >
-                  ********
-                </span>
-              </li>
+                  {/* Left side: ID + Name */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-slate-400">
+                      #{index + 1}
+                    </span>
+
+                    <span
+                      className="cursor-pointer font-medium text-white hover:text-emerald-400 transition"
+                      title="Click to copy name"
+                      onClick={() => copyText(item.name)}
+                    >
+                      {item.name}
+                    </span>
+                  </div>
+
+                  {/* Right side: Password */}
+                  <span
+                    className="cursor-pointer font-mono tracking-wider text-slate-300 hover:text-emerald-400 transition"
+                    title="Click to copy password"
+                    onClick={() => copyText(item.password)}
+                  >
+                    {item.password}
+                    {/* {"*".repeat(item.password.length)} */}
+                  </span>
+                </li>
+              ))}
+              {/* Empty State */}
+              {savedPasswords.length === 0 && (
+                <div className="text-center text-sm text-slate-400 border border-dashed border-white/10 rounded-xl py-6">
+                  No saved passwords yet
+                </div>
+              )}
             </ul>
           </div>
-
-          {/* Empty State */}
-          {/* <div className="text-center text-sm text-slate-400 border border-dashed border-white/10 rounded-xl py-6">
-            No saved passwords yet
-          </div> */}
         </div>
       </div>
     </div>
