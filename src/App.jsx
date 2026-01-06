@@ -9,7 +9,10 @@ const App = () => {
   const [savePasswordName, setSavePasswordName] = useState("");
   const [savePassword, setSavePassword] = useState("");
 
-  const [savedPasswords, setSavedPasswords] = useState([]);
+  const [savedPasswords, setSavedPasswords] = useState(() => {
+    const storedPassword = localStorage.getItem("savedPasswords");
+    return storedPassword ? JSON.parse(storedPassword) : [];
+  });
 
   const passwordRef = useRef(null);
   const namePassRef = useRef(null);
@@ -54,6 +57,11 @@ const App = () => {
     passwordGenerator,
     savedPasswords,
   ]);
+
+  // Persist on change
+  useEffect(() => {
+    localStorage.setItem("savedPasswords", JSON.stringify(savedPasswords));
+  }, [savedPasswords]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-black flex items-center justify-center px-4 text-white">
@@ -146,9 +154,6 @@ const App = () => {
             <h2 className="text-xl font-semibold tracking-wide">
               Saved Passwords
             </h2>
-            <button className="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-white/10 transition active:scale-95">
-              +
-            </button>
           </div>
 
           {/* Save Password */}
